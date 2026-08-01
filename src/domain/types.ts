@@ -113,7 +113,37 @@ export type WorkflowResult = {
     proposal: "REVIEW_REQUIRED";
     execution: "SYNTHETIC_APPROVAL_ONLY";
     productionCapability: "ABSENT";
+    confirmationBound: true;
+    authorizedPlanDigest: string;
+  };
+  stateProof: {
+    sourceSnapshotDigests: string[];
+    uniqueMappedRecords: number;
+    ambiguousRecordIds: string[];
+    proposalDigest: string;
+    operationKey: string;
+    operationLedgerEntries: number;
+    expectedTargetDigests: string[];
+    observedTargetDigests: string[];
+    reconciliation: {
+      missing: string[];
+      unexpected: string[];
+      mismatched: string[];
+    };
+    compensation: {
+      planned: number;
+      applied: number;
+      baselineRestored: boolean;
+    };
   };
   unknowns: string[];
   runDigest: string;
+};
+
+export type WorkflowScenario = WorkflowResult["scenario"];
+
+export type WorkflowAuthorization = {
+  scenario: WorkflowScenario;
+  planDigest: string;
+  confirmationPhrase: string;
 };

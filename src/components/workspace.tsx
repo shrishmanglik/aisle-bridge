@@ -16,17 +16,18 @@ import {
   ShieldCheck,
   Sparkles,
 } from "lucide-react";
-import { useForm } from "react-hook-form";
+import { useEffect, useState } from "react";
+import { useForm, useWatch } from "react-hook-form";
 import { z } from "zod";
 import { Badge } from "@/src/components/ui/badge";
 import { Button } from "@/src/components/ui/button";
 import { Card } from "@/src/components/ui/card";
-import type { EvidenceReceipt, WorkflowResult } from "@/src/domain/types";
+import type { EvidenceReceipt, WorkflowAuthorization, WorkflowResult } from "@/src/domain/types";
 import { useWorkflowStore } from "@/src/stores/workflow-store";
 
 const formSchema = z.object({
   scenario: z.enum(["clean", "partial-write-recovery"]),
-  confirmation: z.literal("RUN SYNTHETIC", { error: "Type RUN SYNTHETIC to authorize this local simulation." }),
+  confirmation: z.string().min(1, "Type the exact plan-bound phrase shown below."),
 });
 type FormValues = z.infer<typeof formSchema>;
 
@@ -93,7 +94,7 @@ function ResultPanel({ result }: { result: WorkflowResult }) {
         <Metric label="Source rows" value={result.sourceRecords} detail="two synthetic sources" />
         <Metric label="Canonical records" value={result.canonicalRecords} detail="meaning preserved" />
         <Metric label="P0 controls" value={result.detectorResults.length} detail="all deterministic" />
-        <Metric label="Duplicate writes" value="0" detail="operation key suppressed" />
+        <Metric label="Duplicate writes" value={result.duplicateSuppressed ? 0 : "UNKNOWN"} detail={`${result.stateProof.operationLedgerEntries} operation key recorded`} />
       </div>
       <Card className="p-5">
         <div className="flex gap-3">
@@ -103,6 +104,7 @@ function ResultPanel({ result }: { result: WorkflowResult }) {
             <p className="mt-1 text-sm leading-6 text-slate-400">
               This run proves local synthetic behavior only. Buyer demand, retailer acceptance, Instacart fit, production reliability, and commercial outcomes remain UNKNOWN.
             </p>
+            <p className="mt-2 break-all font-mono text-[11px] text-slate-500">Authorized plan {result.humanAuthority.authorizedPlanDigest}</p>
           </div>
         </div>
       </Card>
@@ -121,24 +123,47 @@ function Metric({ label, value, detail }: { label: string; value: string | numbe
 }
 
 export function Workspace() {
-  const { result, status, error, setRunning, setResult, setError, reset } = useWorkflowStore();
-  const { register, handleSubmit, formState: { errors } } = useForm<FormValues>({
+  const { result, status, error, setRunning, setResult, setError: setWorkflowError, reset } = useWorkflowStore();
+  const [authorization, setAuthorization] = useState<WorkflowAuthorization | null>(null);
+  const { control, register, handleSubmit, setError, setValue, formState: { errors } } = useForm<FormValues>({
     resolver: zodResolver(formSchema),
-    defaultValues: { scenario: "clean", confirmation: "RUN SYNTHETIC" },
+    defaultValues: { scenario: "clean", confirmation: "" },
   });
+  const scenario = useWatch({ control, name: "scenario" });
+  const activeAuthorization = authorization?.scenario === scenario ? authorization : null;
+
+  useEffect(() => {
+    const controller = new AbortController();
+    setValue("confirmation", "");
+    fetch(`/api/workflow?scenario=${scenario}`, { signal: controller.signal })
+      .then(async (response) => {
+        if (!response.ok) throw new Error("Unable to prepare the synthetic plan authorization.");
+        setAuthorization((await response.json()) as WorkflowAuthorization);
+      })
+      .catch((caught: unknown) => {
+        if (caught instanceof DOMException && caught.name === "AbortError") return;
+        setWorkflowError(caught instanceof Error ? caught.message : "Unable to prepare the synthetic plan authorization.");
+      });
+    return () => controller.abort();
+  }, [scenario, setValue, setWorkflowError]);
 
   async function onSubmit(values: FormValues) {
+    if (!activeAuthorization || values.confirmation !== activeAuthorization.confirmationPhrase) {
+      setError("confirmation", { message: "The confirmation must match this exact plan digest." });
+      return;
+    }
     setRunning();
     try {
       const response = await fetch("/api/workflow", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(values),
+        body: JSON.stringify({ ...values, planDigest: activeAuthorization.planDigest }),
       });
       if (!response.ok) throw new Error("The workflow was held. Check confirmation and retry.");
       setResult((await response.json()) as WorkflowResult);
+      setValue("confirmation", "");
     } catch (caught) {
-      setError(caught instanceof Error ? caught.message : "Unexpected local workflow error.");
+      setWorkflowError(caught instanceof Error ? caught.message : "Unexpected local workflow error.");
     }
   }
 
@@ -234,9 +259,13 @@ export function Workspace() {
                 <div>
                   <label htmlFor="confirmation" className="form-label">Typed confirmation</label>
                   <input id="confirmation" className="text-input" spellCheck={false} autoComplete="off" {...register("confirmation")} aria-describedby={errors.confirmation ? "confirmation-error" : "confirmation-help"} />
-                  {errors.confirmation ? <p id="confirmation-error" className="form-error">{errors.confirmation.message}</p> : <p id="confirmation-help" className="form-help">Confirms a local synthetic action only.</p>}
+                  {errors.confirmation ? <p id="confirmation-error" className="form-error">{errors.confirmation.message}</p> : (
+                    <p id="confirmation-help" className="form-help">
+                      {activeAuthorization ? <>Type <code>{activeAuthorization.confirmationPhrase}</code> to bind authority to plan <code>{activeAuthorization.planDigest.slice(0, 12)}</code>.</> : "Preparing exact plan digestâ€¦"}
+                    </p>
+                  )}
                 </div>
-                <Button type="submit" className="w-full" disabled={status === "running"}>
+                <Button type="submit" className="w-full" disabled={status === "running" || !activeAuthorization}>
                   {status === "running" ? <><RefreshCcw className="animate-spin" size={16} />Running controls…</> : <>Run governed workflow <ArrowRight size={16} /></>}
                 </Button>
                 <div aria-live="polite" aria-atomic="true">

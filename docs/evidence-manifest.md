@@ -17,14 +17,14 @@ Status: local candidate pending independent review.
 | Clean starting state | VERIFIED | clone of `main@601e797c6a7069edd2294d809f27a8bdb7f96516`; only `README.md` tracked |
 | Failing-before control | VERIFIED | initial `npm.cmd test`: missing `@/src/detectors`; 1 failed suite, exit 1 |
 | Critical detector mutation | VERIFIED | `AISLEBRIDGE_DISABLED_DETECTOR=DET-AB-R8 npm.cmd run test:control`: 1 failed, expected `REJECT`, received `HELD`, exit 1 |
-| Restored deterministic tests | VERIFIED | `npm.cmd test`: 65/65 passed in 10 files on each of two complete runs |
+| Restored deterministic tests | VERIFIED | `npm.cmd test`: 78/78 passed in 10 files on each of two complete post-remediation runs |
 | Critical restored control | VERIFIED | `npm.cmd run test:control`: 1/1 passed on each of two consecutive runs |
 | Acceptance fixtures | VERIFIED | 24/24 bad/good fixture checks passed |
-| Mutation assertions | VERIFIED | 12/12 detector-disable assertions passed |
-| Security checks | VERIFIED | 11/11 passed, including RLS coverage and API authority boundary |
+| Mutation assertions | VERIFIED | 13/13 passed: clean acceptance suite plus 12 detector removals that each make the suite fail |
+| Security checks | VERIFIED | 20/20 passed, including forced RLS, tenant-qualified relationship coverage, and exact plan-bound API authority |
 | Accessibility source checks | VERIFIED | 5/5 passed; browser run separately proves keyboard activation and narrow viewport |
-| Recovery checks | VERIFIED | 4/4 passed |
-| Browser journey | VERIFIED | desktop + mobile, clean + recovery + keyboard activation: 6/6 passed; no console error or page overflow |
+| Recovery checks | VERIFIED | 5/5 passed, including observed mismatch and derived compensation proof |
+| Browser journey | VERIFIED | desktop + mobile, clean + recovery + keyboard activation + empty-confirmation denial: 8/8 passed; no console error or page overflow |
 | Screenshot | VERIFIED | `docs/screenshots/aislebridge-workspace.png`, captured from production build |
 | Dependency audit | VERIFIED | `npm.cmd audit --omit=dev`: 0 vulnerabilities after pinned transitive overrides |
 | Typecheck, lint, build | VERIFIED | strict TypeScript, ESLint with zero warnings/errors, and Next.js 16.2.12 production build passed |
@@ -37,7 +37,14 @@ Status: local candidate pending independent review.
 | Default branch | VERIFIED | GitHub API: `main` at base SHA above |
 | Task branch pushed | VERIFIED | `dev/aisle-bridge-initial-build`; initial candidate `ceb61e0e9a070d5348e531641658beb84f1e35ac` |
 | Pull request | VERIFIED | public PR `#1` opened against `main`; no merge performed |
-| Hosted CI | CORRECTION PENDING | First PR run executed real steps: install, typecheck, lint, 64 tests, and build passed; Linux E2E failed because the launcher used Windows-only `npm.cmd`. The cross-platform launcher correction passes 6/6 locally and has a regression control; this manifest does not claim a corrective hosted result. |
+| Hosted CI | CORRECTION PENDING | First PR run executed real steps: install, typecheck, lint, 64 tests, and build passed; Linux E2E failed because the launcher used Windows-only `npm.cmd`. The cross-platform launcher plus reviewer remediations pass 8/8 browser journeys locally and have regression controls; this manifest does not claim a corrective hosted result. |
+
+## Independent review truth
+
+| Claim | State | Evidence |
+|---|---|---|
+| First distinct review | REVISE | exact clean SHA `5ab72d8882ee0200ff8eb59b90aa4fd13004bd42`; found tenant relationship, fixed-receipt, confirmation, and mutation-harness defects |
+| Author remediation | LOCAL CANDIDATE | tenant-qualified composite FKs, state-derived workflow, exact digest-bound confirmation, and executable all-detector mutation harness implemented; new immutable SHA and re-review pending |
 
 ## Provider and commercial truth
 

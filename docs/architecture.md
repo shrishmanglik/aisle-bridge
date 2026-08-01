@@ -24,7 +24,8 @@ No downstream status can rewrite source truth or silently authorize the next sta
 
 | Boundary | Input | Output | Failure state |
 |---|---|---|---|
-| `POST /api/workflow` | scenario + exact typed confirmation | `AisleBridgeWorkflowResult.v1` | HTTP 400 + `HELD` |
+| `GET /api/workflow` | selected synthetic scenario | exact plan digest + confirmation challenge | HTTP 400 + `HELD` |
+| `POST /api/workflow` | scenario + exact plan digest + freshly typed challenge | `AisleBridgeWorkflowResult.v1` | HTTP 400/409 + `HELD` |
 | Detector registry | versioned fixture + typed facts | `DetectorResult.v1` | `HELD / DETECTOR_UNAVAILABLE` |
 | Workflow engine | clean or recovery scenario | stable evidence receipts | throws `CONTROL_PLANE_NOT_READY` if a clean P0 control fails |
 | Supabase source contract | tenant-bound records | RLS-protected rows | deny without matching JWT tenant claim |
@@ -41,11 +42,11 @@ The implemented persistence source defines seven tables:
 - `evidence_receipts`
 - `audit_events`
 
-Every table carries `tenant_id`, enables RLS, and declares a tenant-isolation policy. The migration is a source artifact only; live application and policy state are UNKNOWN until a provider applies and verifies it.
+Every table carries `tenant_id`, enables and forces RLS, and declares a tenant-isolation policy. Every concrete parent-child relationship uses a tenant-qualified composite foreign key, so a child cannot point at another tenant's parent even when both rows independently satisfy their own policy. The migration is a source artifact only; live application and policy state are UNKNOWN until a provider applies and verifies it.
 
 ## Receipt integrity
 
-All workflow and detector receipts use canonical key ordering and SHA-256. Repeated runs over the same input return byte-equivalent normalized objects and the same digest. Runtime timestamps are intentionally excluded from the synthetic receipt body so repeatability can be tested exactly.
+All workflow and detector receipts use canonical key ordering and SHA-256. Source snapshot, proposal, expected target, observed target, and operation-key digests are emitted in `stateProof`. Counts and terminal decisions are derived from in-memory source, mapping, ledger, readback, reconciliation, and compensation state. Repeated runs over the same input return byte-equivalent normalized objects and the same digest. Runtime timestamps are intentionally excluded from the synthetic receipt body so repeatability can be tested exactly.
 
 ## Failure attribution
 

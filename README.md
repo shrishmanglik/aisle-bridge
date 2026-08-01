@@ -29,12 +29,12 @@ The repository contains a runnable, production-shaped vertical slice using clear
 2. Map eight conflicting source rows into four canonical products while preserving pack, unit, location, and freshness semantics.
 3. Accept exact identifier matches and hold an ambiguous pair for human review.
 4. Produce one evidence-grounded, reversible proposal with no execution authority.
-5. Dry-run two affected records, downstream consumers, before-state, and a distinct compensating change.
-6. Execute once in a local sandbox and suppress a duplicate operation key.
-7. Reconcile the complete expected set, or inject a partial write and prove fail-closed compensation.
-8. Emit stage-level SHA-256 evidence receipts and keep commercial/provider unknowns explicit.
+5. Derive and dry-run two affected records, downstream consumers, before-state, and distinct compensating changes.
+6. Require a freshly typed confirmation bound to the exact plan digest, execute once in an in-memory sandbox, and suppress a duplicate operation key.
+7. Read the sandbox back and compare exact expected/observed digests; or inject a partial write and execute compensation back to the baseline.
+8. Derive stage counts and SHA-256 evidence receipts from the resulting state, while keeping commercial/provider unknowns explicit.
 
-The same build includes 12 one-to-one P0 detectors, 24 bad/good fixtures, a detector mutation probe, a typed API boundary, a Supabase schema with RLS on every table, responsive UI, and desktop/mobile E2E coverage.
+The same build includes 12 one-to-one P0 detectors, 24 bad/good fixtures, an all-detector executable mutation harness, a typed API boundary, a Supabase schema with RLS and tenant-qualified relationships, responsive UI, and desktop/mobile E2E coverage.
 
 ## Architecture
 
@@ -63,7 +63,7 @@ See [Architecture and contracts](docs/architecture.md) and the [Supabase migrati
 |---|---|---|
 | Deterministic | tenant/source checks, semantic completeness, exact identity, denominators, impact, idempotency, reconciliation, receipts | **Implemented** |
 | AI-shaped proposal boundary | cited transform proposal, assumptions, confidence, abstention | **Implemented as deterministic synthetic proposal; no model call** |
-| Human | approve semantics, exact change digest, recovery, and R&D promotion | **Structurally required; synthetic approval only in demo** |
+| Human | type a fresh confirmation for the exact plan digest; approve semantics, recovery, and R&D promotion | **Structurally required; synthetic approval only in demo** |
 | Provider/customer | live auth, persistence, connectors, deployment, security acceptance | **Not connected / UNKNOWN** |
 
 The primary workflow still runs with AI disabled. There are no runtime AI calls and no secret is required.
@@ -79,7 +79,7 @@ npm ci
 npm run dev
 ```
 
-Open `http://localhost:3000`, choose the clean or recovery scenario, keep the typed confirmation `RUN SYNTHETIC`, and run the workflow.
+Open `http://localhost:3000`, choose the clean or recovery scenario, then type the complete `RUN SYNTHETIC <PLAN_DIGEST_PREFIX>` phrase shown for that exact plan and run the workflow.
 
 ## Verification
 
@@ -109,8 +109,8 @@ With the detector restored, `npm run test:control` passes. See the [evidence man
 
 - No customer, employer, loyalty, payment, credential, or personal data is included.
 - Production capability is structurally absent from the runnable slice.
-- The API requires typed confirmation and labels responses `synthetic-only`.
-- Supabase DDL enables RLS and tenant policies on every table; it has not been applied to a provider.
+- The API requires freshly typed confirmation bound to the exact plan digest and labels responses `synthetic-only`.
+- Supabase DDL enables and forces RLS on every table and uses tenant-qualified parent-child foreign keys; it has not been applied to a provider.
 - Audit events are append-only by privilege: authenticated updates and deletes are revoked.
 - `.env*`, logs, build output, traces, and test artifacts are excluded from Git.
 - An indeterminate write never becomes success; it must reconcile or recover.
@@ -144,7 +144,7 @@ The [operator runbook](docs/operator-runbook.md) contains the state machine and 
 | Capability | State |
 |---|---|
 | Synthetic source intake, mapping, proposal, dry-run, execute, reconcile, recover | Implemented |
-| 12 detectors + 24 fixtures + mutation probe | Implemented |
+| 12 detectors + 24 fixtures + all-detector mutation harness | Implemented |
 | Typed `/api/workflow` service boundary | Implemented |
 | Supabase tenant schema and RLS policy source | Implemented, not applied |
 | Real retailer connector and identity provider | Proposed |

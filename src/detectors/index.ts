@@ -11,6 +11,8 @@ import { abR10Detector } from "./ab-r10.detector";
 import { abR11Detector } from "./ab-r11.detector";
 import { abR12Detector } from "./ab-r12.detector";
 import type { Detector, RequirementId } from "@/src/domain/types";
+import { requirementIds } from "@/src/domain/types";
+import { fixturePairs } from "@/src/fixtures/acceptance";
 
 export const detectorRegistry: Record<RequirementId, Detector> = {
   "AB-R1": abR1Detector,
@@ -41,4 +43,15 @@ export function evaluateFixture(fixture: Parameters<Detector["evaluate"]>[0], di
     };
   }
   return detector.evaluate(fixture);
+}
+
+export function assertAcceptanceSuite(disabledDetector?: string) {
+  const regressions = requirementIds.flatMap((requirementId) => {
+    const fixtures = [fixturePairs[requirementId].bad, fixturePairs[requirementId].good];
+    return fixtures.flatMap((fixture) => {
+      const actual = evaluateFixture(fixture, disabledDetector).decision;
+      return actual === fixture.expectedDecision ? [] : [`${fixture.id}:expected-${fixture.expectedDecision}:received-${actual}`];
+    });
+  });
+  if (regressions.length > 0) throw new Error(`ACCEPTANCE_REGRESSION:${regressions.join(",")}`);
 }

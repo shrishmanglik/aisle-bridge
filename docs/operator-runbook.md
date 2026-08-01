@@ -4,7 +4,7 @@
 
 1. Start the app and confirm the `Synthetic sandbox` banner.
 2. Select `Clean execution`.
-3. Type `RUN SYNTHETIC` and run the workflow.
+3. Type the complete `RUN SYNTHETIC <PLAN_DIGEST_PREFIX>` phrase shown for the selected exact plan and run the workflow.
 4. Verify terminal state `RECONCILED`, 12 P0 controls, 8 source rows, 4 canonical records, and 0 duplicate writes.
 5. Select `Partial write + recovery` and run again.
 6. Verify the sequence includes `ROLLBACK REQUIRED` and then `RECOVERED`.

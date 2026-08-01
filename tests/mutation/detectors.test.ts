@@ -1,13 +1,13 @@
 import { describe, expect, it } from "vitest";
-import { evaluateFixture } from "@/src/detectors";
-import { fixturePairs } from "@/src/fixtures/acceptance";
+import { assertAcceptanceSuite } from "@/src/detectors";
 import { requirementIds } from "@/src/domain/types";
 
 describe("detector mutation probes", () => {
-  it.each(requirementIds)("fails closed when DET-%s is disabled", (requirementId) => {
-    const fixture = fixturePairs[requirementId].bad;
-    const result = evaluateFixture(fixture, fixture.detectorId);
-    expect(result.decision).toBe("HELD");
-    expect(result.issueCodes).toContain("DETECTOR_UNAVAILABLE");
+  it("passes the complete acceptance suite with every detector present", () => {
+    expect(() => assertAcceptanceSuite()).not.toThrow();
+  });
+
+  it.each(requirementIds)("makes the acceptance suite fail when DET-%s is disabled", (requirementId) => {
+    expect(() => assertAcceptanceSuite(`DET-${requirementId}`)).toThrow(new RegExp(`ACCEPTANCE_REGRESSION:${requirementId}-(BAD|GOOD)`));
   });
 });
