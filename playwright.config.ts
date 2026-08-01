@@ -11,7 +11,7 @@ export default defineConfig({
     screenshot: "only-on-failure",
   },
   webServer: {
-    command: "npm.cmd run start -- --hostname 127.0.0.1 --port 3288",
+    command: "npm run start -- --hostname 127.0.0.1 --port 3288",
     url: "http://127.0.0.1:3288",
     reuseExistingServer: false,
     timeout: 120_000,

@@ -17,7 +17,7 @@ Status: local candidate pending independent review.
 | Clean starting state | VERIFIED | clone of `main@601e797c6a7069edd2294d809f27a8bdb7f96516`; only `README.md` tracked |
 | Failing-before control | VERIFIED | initial `npm.cmd test`: missing `@/src/detectors`; 1 failed suite, exit 1 |
 | Critical detector mutation | VERIFIED | `AISLEBRIDGE_DISABLED_DETECTOR=DET-AB-R8 npm.cmd run test:control`: 1 failed, expected `REJECT`, received `HELD`, exit 1 |
-| Restored deterministic tests | VERIFIED | `npm.cmd test`: 64/64 passed in 9 files on each of two complete runs |
+| Restored deterministic tests | VERIFIED | `npm.cmd test`: 65/65 passed in 10 files on each of two complete runs |
 | Critical restored control | VERIFIED | `npm.cmd run test:control`: 1/1 passed on each of two consecutive runs |
 | Acceptance fixtures | VERIFIED | 24/24 bad/good fixture checks passed |
 | Mutation assertions | VERIFIED | 12/12 detector-disable assertions passed |
@@ -35,9 +35,9 @@ Status: local candidate pending independent review.
 |---|---|---|
 | Repository is public | VERIFIED | GitHub API: `visibility=PUBLIC`, `isPrivate=false` |
 | Default branch | VERIFIED | GitHub API: `main` at base SHA above |
-| Task branch pushed | PENDING | `dev/aisle-bridge-initial-build` not yet pushed at this manifest revision |
-| Pull request | PENDING | not yet opened at this manifest revision |
-| Hosted CI | UNKNOWN | no PR run yet |
+| Task branch pushed | VERIFIED | `dev/aisle-bridge-initial-build`; initial candidate `ceb61e0e9a070d5348e531641658beb84f1e35ac` |
+| Pull request | VERIFIED | public PR `#1` opened against `main`; no merge performed |
+| Hosted CI | CORRECTION PENDING | First PR run executed real steps: install, typecheck, lint, 64 tests, and build passed; Linux E2E failed because the launcher used Windows-only `npm.cmd`. The cross-platform launcher correction passes 6/6 locally and has a regression control; this manifest does not claim a corrective hosted result. |
 
 ## Provider and commercial truth
 
